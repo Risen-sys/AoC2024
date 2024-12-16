@@ -1,0 +1,75 @@
+import matplotlib.pyplot as plt
+import numpy as np
+from collections import deque
+
+def parse_topographic_map(input_text):
+    return [list(map(int, line)) for line in input_text.strip().split("\n")]
+
+def find_trailheads(topographic_map):
+    trailheads = []
+    for r in range(len(topographic_map)):
+        for c in range(len(topographic_map[0])):
+            if topographic_map[r][c] == 0:
+                trailheads.append((r, c))
+    return trailheads
+
+def bfs_trailhead_score(topographic_map, start):
+    rows, cols = len(topographic_map), len(topographic_map[0])
+    queue = deque([start])
+    visited = set()
+    visited.add(start)
+    score = 0
+
+    while queue:
+        r, c = queue.popleft()
+        if topographic_map[r][c] == 9:
+            score += 1
+
+        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < rows and 0 <= nc < cols and (nr, nc) not in visited:
+                if topographic_map[nr][nc] == topographic_map[r][c] + 1:
+                    queue.append((nr, nc))
+                    visited.add((nr, nc))
+
+    return score
+
+def calculate_total_score(topographic_map):
+    trailheads = find_trailheads(topographic_map)
+    total_score = 0
+    scores = []
+
+    for trailhead in trailheads:
+        score = bfs_trailhead_score(topographic_map, trailhead)
+        scores.append(score)
+        total_score += score
+
+    return total_score, scores
+
+def visualize_topographic_map(topographic_map, scores):
+    plt.figure(figsize=(10, 8))
+    cmap = plt.cm.terrain
+    plt.imshow(topographic_map, cmap=cmap, origin="upper")
+    plt.colorbar(label="Height")
+
+    trailheads = find_trailheads(topographic_map)
+    for (r, c), score in zip(trailheads, scores):
+        plt.text(c, r, str(score), color="black", ha="center", va="center", 
+                 bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
+
+    plt.title("Topographic Map with Trailhead Scores")
+    plt.xlabel("Columns")
+    plt.ylabel("Rows")
+    plt.show()
+
+# Read input from a file
+with open(r'C:\Users\MatthewSilbernagel\Desktop\input.txt', 'r') as file:
+    input_text = file.read()
+
+topographic_map = parse_topographic_map(input_text)
+total_score, scores = calculate_total_score(topographic_map)
+
+print("Total score of all trailheads:", total_score)
+
+# Visualize the topographic map and scores
+visualize_topographic_map(topographic_map, scores)
